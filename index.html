@@ -21,6 +21,8 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 30px;
+            position: relative;
+            overflow: hidden;
         }
         
         .header {
@@ -229,6 +231,21 @@
         .hidden {
             display: none;
         }
+        
+        .stats {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #777;
+        }
+        
+        .debug-info {
+            font-family: monospace;
+            font-size: 12px;
+            color: #777;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -255,6 +272,10 @@
             <div id="results-container">
                 <!-- Results will be populated here by JavaScript -->
             </div>
+            <div id="debug-stats" class="stats hidden">
+                <div>Simulation #<span id="sim-count">1</span> | <span id="sim-time"></span></div>
+                <div id="debug-info" class="debug-info"></div>
+            </div>
         </div>
     </div>
 
@@ -277,7 +298,7 @@
             { code: 'ATL', name: 'Atlanta Hawks', primary: '#E03A3E', secondary: '#C1D32F', odds: 0.5, seed: 14 }
         ];
         
-        // Lottery odds for picks 1-4 (simplified)
+        // Lottery odds for picks 1-4
         const LOTTERY_ODDS = {
             1: [14.0, 13.4, 12.7, 12.0],
             2: [14.0, 13.4, 12.7, 12.0],
@@ -300,6 +321,26 @@
         const runBtn = document.getElementById('run-btn');
         const results = document.getElementById('results');
         const resultsContainer = document.getElementById('results-container');
+        const debugStats = document.getElementById('debug-stats');
+        const simCount = document.getElementById('sim-count');
+        const simTime = document.getElementById('sim-time');
+        const debugInfo = document.getElementById('debug-info');
+        
+        // Simulation counter and results history
+        let simulationCounter = 0;
+        let lastResults = null;
+        
+        // Get a crypto-based random number between 0 and 1
+        function getSecureRandom() {
+            try {
+                const array = new Uint32Array(1);
+                window.crypto.getRandomValues(array);
+                return array[0] / (0xffffffff + 1); // Normalize to [0, 1)
+            } catch (e) {
+                // Fallback to Math.random with added entropy
+                return Math.random() * (new Date().getTime() % 1000) / 1000;
+            }
+        }
         
         // Populate team grid
         function populateTeamGrid() {
@@ -328,6 +369,9 @@
         function init() {
             populateTeamGrid();
             runBtn.addEventListener('click', runLottery);
+            
+            // Show debug info by default to help diagnose issues
+            debugStats.classList.remove('hidden');
         }
         
         // Create confetti effect
@@ -342,11 +386,11 @@
                 const confetti = document.createElement('div');
                 confetti.className = 'confetti';
                 
-                const size = Math.random() * 8 + 4;
-                const x = Math.random() * 100;
-                const y = -Math.random() * 20 - 10;
-                const speed = Math.random() * 3 + 2;
-                const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                const size = getSecureRandom() * 8 + 4;
+                const x = getSecureRandom() * 100;
+                const y = -getSecureRandom() * 20 - 10;
+                const speed = getSecureRandom() * 3 + 2;
+                const color = `hsl(${getSecureRandom() * 360}, 70%, 60%)`;
                 
                 confetti.style.width = `${size}px`;
                 confetti.style.height = `${size}px`;
@@ -372,11 +416,41 @@
             
             // Clear previous results
             resultsContainer.innerHTML = '';
-            results.classList.add('hidden');
+            
+            // Force a browser reflow/repaint
+            void results.offsetWidth;
+            
+            // Increment simulation counter
+            simulationCounter++;
+            simCount.textContent = simulationCounter;
+            
+            // Add timestamp
+            const now = new Date();
+            simTime.textContent = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}`;
+            
+            // Clear debug info
+            debugInfo.innerHTML = '';
             
             // Simulate with a delay for dramatic effect
             setTimeout(() => {
+                const startTime = performance.now();
                 const draftOrder = simulateDraft();
+                const endTime = performance.now();
+                
+                // Add time info
+                debugInfo.innerHTML += `Simulation time: ${(endTime - startTime).toFixed(2)}ms<br>`;
+                
+                // Check if results are the same as last time
+                if (lastResults) {
+                    const sameResults = JSON.stringify(draftOrder.map(t => t.code)) === 
+                                       JSON.stringify(lastResults.map(t => t.code));
+                    debugInfo.innerHTML += `Same as last time: ${sameResults ? 'YES - ERROR!' : 'No - Good!'}<br>`;
+                }
+                
+                // Save current results
+                lastResults = [...draftOrder];
+                
+                // Display results
                 displayResults(draftOrder);
                 
                 // Re-enable the button
@@ -392,9 +466,10 @@
         
         // Simulate the draft lottery
         function simulateDraft() {
-            // Create a copy of the teams array to work with
-            const teamsCopy = TEAMS.map(team => ({...team}));
+            // Create a deep copy of the teams array
+            const teamsCopy = JSON.parse(JSON.stringify(TEAMS));
             const draftOrder = [];
+            const debugData = [];
             
             // Simulate the first 4 picks (lottery picks)
             for (let pick = 0; pick < 4; pick++) {
@@ -402,12 +477,17 @@
                     return sum + LOTTERY_ODDS[team.seed][pick];
                 }, 0);
                 
-                const random = Math.random() * totalOdds;
-                console.log(`Pick ${pick+1}: Random value ${random.toFixed(2)} / Total ${totalOdds.toFixed(2)}`);
+                // Get a secure random number
+                const random = getSecureRandom() * totalOdds;
+                
+                // Debug output
+                const pickDebug = `Pick ${pick+1}: Random ${random.toFixed(2)}/${totalOdds.toFixed(2)}`;
+                debugData.push(pickDebug);
                 
                 let runningTotal = 0;
                 let selectedIndex = -1;
                 
+                // Find which team gets the pick based on odds
                 for (let i = 0; i < teamsCopy.length; i++) {
                     runningTotal += LOTTERY_ODDS[teamsCopy[i].seed][pick];
                     if (random <= runningTotal) {
@@ -420,8 +500,12 @@
                 if (selectedIndex === -1) selectedIndex = teamsCopy.length - 1;
                 
                 // Add the team to the draft order
-                console.log(`Pick ${pick+1}: Selected ${teamsCopy[selectedIndex].code}`);
-                draftOrder.push(teamsCopy[selectedIndex]);
+                const selectedTeam = teamsCopy[selectedIndex];
+                draftOrder.push(selectedTeam);
+                debugData.push(`→ Selected ${selectedTeam.code} (${selectedTeam.seed})`);
+                
+                // Log to console for debugging
+                console.log(`Pick ${pick+1}: Selected ${selectedTeam.code} with random ${random.toFixed(2)}/${totalOdds.toFixed(2)}`);
                 
                 // Remove the team from the pool
                 teamsCopy.splice(selectedIndex, 1);
@@ -432,7 +516,12 @@
             draftOrder.push(...teamsCopy);
             
             // Log the complete draft order
-            console.log("Full draft order:", draftOrder.map(team => team.code).join(", "));
+            const fullOrder = draftOrder.map(team => team.code).join(", ");
+            console.log("Full draft order:", fullOrder);
+            debugData.push(`Final order: ${fullOrder}`);
+            
+            // Update debug info
+            debugInfo.innerHTML += debugData.join('<br>');
             
             return draftOrder;
         }
