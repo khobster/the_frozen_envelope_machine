@@ -5,25 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Frozen Envelope Machine</title>
     <style>
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container {
-            max-width: 850px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.08);
-            padding: 32px;
-            position: relative;
-            overflow: hidden;
-        }
-        .header {text-align:center;margin-bottom:28px}
+        body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;margin:0;padding:20px;line-height:1.6;color:#333}
+        .container{max-width:850px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:32px;position:relative;overflow:hidden}
+        .header{text-align:center;margin-bottom:28px}
         .emojis{font-size:3rem;margin-bottom:8px}
         h1{margin:0 0 6px;color:#1d428a;font-size:2.05rem}
         .subtitle{margin:0;color:#777;font-size:1rem}
@@ -50,7 +34,7 @@
         .up{color:#22bb33}
         .down{color:#bb2124}
         .lottery-badge{margin-left:auto;padding:5px 10px;border-radius:18px;background:#ffeeba;color:#856404;font-size:12px;font-weight:600}
-        .debug-info{margin-top:20px;padding:10px;border-top:1px solid #eee;font-family:monospace;font-size:12px;color:#777}
+        .debug-info{display:none} /* hide raw text log */
         .hidden{display:none}
         .confetti{position:absolute;width:10px;height:10px;animation:fall linear forwards}
         @keyframes fall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(1000px) rotate(720deg)}}
@@ -77,47 +61,19 @@
         </div>
     </div>
 <script>
-const TEAMS=[
- {code:'UTA',name:'Utah Jazz',primary:'#002B5C',secondary:'#F9A01B',odds:14,seed:1},
- {code:'WAS',name:'Washington Wizards',primary:'#002B5C',secondary:'#E31837',odds:14,seed:2},
- {code:'CHA',name:'Charlotte Hornets',primary:'#1D1160',secondary:'#00788C',odds:14,seed:3},
- {code:'NO',name:'New Orleans Pelicans',primary:'#0C2340',secondary:'#C8102E',odds:12.5,seed:4},
- {code:'PHI',name:'Philadelphia 76ers',primary:'#006BB6',secondary:'#ED174C',odds:10.5,seed:5},
- {code:'BKN',name:'Brooklyn Nets',primary:'#000',secondary:'#fff',odds:9,seed:6},
- {code:'TOR',name:'Toronto Raptors',primary:'#CE1141',secondary:'#000',odds:7.5,seed:7},
- {code:'SA',name:'San Antonio Spurs',primary:'#C4CED4',secondary:'#000',odds:6,seed:8},
- {code:'PHX',name:'Phoenix Suns',primary:'#1D1160',secondary:'#E56020',odds:4.5,seed:9},
- {code:'POR',name:'Portland Trail Blazers',primary:'#E03A3E',secondary:'#000',odds:3,seed:10},
- {code:'DAL',name:'Dallas Mavericks',primary:'#00538C',secondary:'#002B5E',odds:2,seed:11},
- {code:'CHI',name:'Chicago Bulls',primary:'#CE1141',secondary:'#000',odds:1.5,seed:12},
- {code:'SAC',name:'Sacramento Kings',primary:'#5A2D81',secondary:'#63727A',odds:1,seed:13},
- {code:'ATL',name:'Atlanta Hawks',primary:'#E03A3E',secondary:'#C1D32F',odds:.5,seed:14}
-];
+const TEAMS=[{code:'UTA',name:'Utah Jazz',primary:'#002B5C',secondary:'#F9A01B',odds:14,seed:1},{code:'WAS',name:'Washington Wizards',primary:'#002B5C',secondary:'#E31837',odds:14,seed:2},{code:'CHA',name:'Charlotte Hornets',primary:'#1D1160',secondary:'#00788C',odds:14,seed:3},{code:'NO',name:'New Orleans Pelicans',primary:'#0C2340',secondary:'#C8102E',odds:12.5,seed:4},{code:'PHI',name:'Philadelphia 76ers',primary:'#006BB6',secondary:'#ED174C',odds:10.5,seed:5},{code:'BKN',name:'Brooklyn Nets',primary:'#000',secondary:'#fff',odds:9,seed:6},{code:'TOR',name:'Toronto Raptors',primary:'#CE1141',secondary:'#000',odds:7.5,seed:7},{code:'SA',name:'San Antonio Spurs',primary:'#C4CED4',secondary:'#000',odds:6,seed:8},{code:'PHX',name:'Phoenix Suns',primary:'#1D1160',secondary:'#E56020',odds:4.5,seed:9},{code:'POR',name:'Portland Trail Blazers',primary:'#E03A3E',secondary:'#000',odds:3,seed:10},{code:'DAL',name:'Dallas Mavericks',primary:'#00538C',secondary:'#002B5E',odds:2,seed:11},{code:'CHI',name:'Chicago Bulls',primary:'#CE1141',secondary:'#000',odds:1.5,seed:12},{code:'SAC',name:'Sacramento Kings',primary:'#5A2D81',secondary:'#63727A',odds:1,seed:13},{code:'ATL',name:'Atlanta Hawks',primary:'#E03A3E',secondary:'#C1D32F',odds:.5,seed:14}];
 let simCount=0;
 const teamGrid=document.getElementById('team-grid');
 const runBtn=document.getElementById('run-btn');
 const resultsDiv=document.getElementById('results');
 const resultsContainer=document.getElementById('results-container');
+// debugInfo kept for dev but hidden in CSS
 const debugInfo=document.getElementById('debug-info');
 function populateTeamGrid(){teamGrid.innerHTML='';TEAMS.forEach(t=>{const card=document.createElement('div');card.className='team-card';card.innerHTML=`<div class="team-logo" style="background:${t.primary}"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${t.secondary}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="${t.primary}"/></svg><div class="team-code" style="color:${t.secondary}">${t.code}</div></div><div class="team-info"><p class="team-name">${t.name}</p><p class="team-odds">${t.odds}% chance at #1</p></div><div class="team-seed">#${t.seed}</div>`;teamGrid.appendChild(card);});}
 function rand(){try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}catch{return Math.random()}}
-function simulateDraft(){debugInfo.innerHTML='';simCount++;const ts=(d=>`${d.toTimeString().split(' ')[0]}.${d.getMilliseconds()}`)(new Date());debugInfo.innerHTML+=`Simulation #${simCount} | ${ts}<br>`;
-  const remaining=[...TEAMS.map(t=>({...t}))];const order=new Array(14);
-  for(let pick=1;pick<=4;pick++){
-    const total=remaining.reduce((s,t)=>s+t.odds,0);
-    const r=rand()*total;debugInfo.innerHTML+=`Pick ${pick}: random ${r.toFixed(4)} / ${total.toFixed(2)}<br>`;
-    let cum=0,idx=0;for(let i=0;i<remaining.length;i++){cum+=remaining[i].odds;if(r<=cum){idx=i;break}}
-    const chosen=remaining.splice(idx,1)[0];order[pick-1]=chosen;debugInfo.innerHTML+=`→ ${chosen.code} (seed ${chosen.seed})<br>`;
-  }
-  remaining.sort((a,b)=>a.seed-b.seed);
-  remaining.forEach((t,i)=>order[4+i]=t);
-  debugInfo.innerHTML+=`Final order: ${order.map(t=>t.code).join(', ')}<br>`;
-  return order;
-}
+function simulateDraft(){debugInfo.innerHTML='';simCount++;const ts=(d=>`${d.toTimeString().split(' ')[0]}.${d.getMilliseconds()}`)(new Date());debugInfo.innerHTML+=`Simulation #${simCount} | ${ts}<br>`;const remaining=[...TEAMS.map(t=>({...t}))];const order=new Array(14);for(let pick=1;pick<=4;pick++){const total=remaining.reduce((s,t)=>s+t.odds,0);const r=rand()*total;let cum=0,idx=0;for(let i=0;i<remaining.length;i++){cum+=remaining[i].odds;if(r<=cum){idx=i;break}}const chosen=remaining.splice(idx,1)[0];order[pick-1]=chosen;}remaining.sort((a,b)=>a.seed-b.seed);remaining.forEach((t,i)=>order[4+i]=t);return order;}
 function displayResults(order){resultsContainer.innerHTML='';order.forEach((t,i)=>{const pick=i+1;const lotto=pick<=4;const move=t.seed-pick;const row=document.createElement('div');row.className=`result-row ${lotto?'lottery':''}`;row.innerHTML=`<div class='pick-number'>${pick}</div><div class='team-logo' style='background:${t.primary}'><svg width='30' height='30' viewBox='0 0 24 24' fill='none' stroke='${t.secondary}' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' fill='${t.primary}'/></svg><div class='team-code' style='color:${t.secondary}'>${t.code}</div></div><div class='team-info'><p class='team-name'>${t.name}</p><p class='team-odds'>Original: #${t.seed} ${move!==0?`<span class='movement ${move>0?'up':'down'}'>(${move>0?'+':''}${move})</span>`:''}</p></div>${lotto?"<div class='lottery-badge'>Lottery Winner</div>":''}`;resultsContainer.appendChild(row);});}
-function confetti(){const ctn=document.querySelector('.container');ctn.querySelectorAll('.confetti').forEach(e=>e.remove());for(let i=0;i<100;i++){const d=document.createElement('div');d.className='confetti';const size=rand()*8+4;d.style.width=d.style.height=`${size}px`;d.style.left=`${rand()*100}%`;d.style.top=`${-rand()*20-10}%`;d.style.backgroundColor=`hsl(${rand()*360},70%,60%)`;d.style.animationDuration=`${rand()*3+2}s`;ctn.appendChild(d);}setTimeout(()=>ctn.querySelectorAll('.confetti').forEach(e=>e.remove()),5000);}
-function run(){runBtn.disabled=true;runBtn.textContent='Freezing Envelopes...';runBtn.style.animation='pulse 1s infinite';setTimeout(()=>{const order=simulateDraft();displayResults(order);resultsDiv.classList.remove('hidden');confetti();runBtn.disabled=false;runBtn.textContent='Run The Frozen Envelope Machine';runBtn.style.animation='none';},1500)}
-function init(){populateTeamGrid();runBtn.addEventListener('click',run);}window.addEventListener('DOMContentLoaded',init);
+function confetti(){const ctn=document.querySelector('.container');ctn.querySelectorAll('.confetti').forEach(e=>e.remove());for(let i=0;i<100;i++){const d=document.createElement('div');d.className='confetti';const size=rand()*8+4;d.style.width=d.style.height=`${size}px`;d.style.left=`${rand()*100}%`;d.style.top=`${-rand()*20-10}%`;d.style.backgroundColor=`hsl(${rand()*360},70%,60%)`;d.style.animationDuration=`${rand()*3+2}s`;ctn.appendChild(d);}setTimeout(()=>ctn.querySelectorAll('.confetti').forEach(e=>e.remove()),5000);}function run(){runBtn.disabled=true;runBtn.textContent='Freezing Envelopes...';runBtn.style.animation='pulse 1s infinite';setTimeout(()=>{const order=simulateDraft();displayResults(order);resultsDiv.classList.remove('hidden');confetti();runBtn.disabled=false;runBtn.textContent='Run The Frozen Envelope Machine';runBtn.style.animation='none';},1500);}function init(){populateTeamGrid();runBtn.addEventListener('click',run);}window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
