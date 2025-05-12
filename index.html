@@ -224,7 +224,30 @@
           const [simulatedOrder, setSimulatedOrder] = React.useState([]);
           const [isSimulating, setIsSimulating] = React.useState(false);
           const [showConfetti, setShowConfetti] = React.useState(false);
-          const processedOdds = processTeamOdds();
+          
+          // Process the odds whenever we need them instead of once on load
+          const processTeamOdds = () => {
+            const teams = Object.values(LOTTERY_ODDS);
+            const cumulativeOdds = {};
+            
+            teams.forEach(team => {
+              const odds = [...team.odds];
+              const cumulative = [];
+              let sum = 0;
+              
+              for (let i = 0; i < odds.length; i++) {
+                sum += odds[i];
+                cumulative.push(sum);
+              }
+              
+              cumulativeOdds[team.team] = {
+                ...team,
+                cumulativeOdds: cumulative
+              };
+            });
+            
+            return cumulativeOdds;
+          };
           
           const simulateDraft = () => {
             setIsSimulating(true);
@@ -232,8 +255,13 @@
             
             // Simulate with delay for each pick for dramatic effect
             setTimeout(() => {
+              // Create a fresh copy of the odds data to ensure we're not reusing state
+              const processedOdds = processTeamOdds();
               const remainingTeams = [...Object.values(processedOdds)];
               const newOrder = [];
+              
+              // Debug logging to verify randomization
+              console.log("Starting new simulation");
               
               // Simulate the first 4 picks (lottery picks)
               for (let pick = 1; pick <= 4; pick++) {
@@ -242,6 +270,7 @@
                 
                 // Get a random number between 0 and totalOdds
                 const random = Math.random() * totalOdds;
+                console.log(`Pick ${pick}: Random value ${random.toFixed(2)} / Total ${totalOdds.toFixed(2)}`);
                 
                 // Find the team that got the pick
                 let runningTotal = 0;
@@ -256,6 +285,7 @@
                 }
                 
                 // Add the team to the draft order
+                console.log(`Pick ${pick}: Selected ${remainingTeams[selectedTeamIndex].team}`);
                 newOrder.push(remainingTeams[selectedTeamIndex]);
                 
                 // Remove the team from the remaining teams
