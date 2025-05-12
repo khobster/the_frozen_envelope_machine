@@ -255,17 +255,13 @@
             <p class="section-subtitle">Based on 2025 NBA Lottery Odds</p>
         </div>
         
-        <div id="team-grid" class="team-grid">
-            <!-- Teams will be populated here -->
-        </div>
+        <div id="team-grid" class="team-grid"></div>
         
         <button id="run-btn" class="run-btn">Run The Frozen Envelope Machine</button>
         
         <div id="results" class="results hidden">
             <h2 class="section-title">Draft Results</h2>
-            <div id="results-container">
-                <!-- Results will be populated here -->
-            </div>
+            <div id="results-container"></div>
             <div id="debug-info" class="debug-info"></div>
         </div>
     </div>
@@ -289,23 +285,20 @@
             { code: 'ATL', name: 'Atlanta Hawks', primary: '#E03A3E', secondary: '#C1D32F', odds: 0.5, seed: 14 }
         ];
         
-        // Counter for simulations
         let simCount = 0;
         
-        // DOM elements
         const teamGrid = document.getElementById('team-grid');
         const runBtn = document.getElementById('run-btn');
         const resultsDiv = document.getElementById('results');
         const resultsContainer = document.getElementById('results-container');
         const debugInfo = document.getElementById('debug-info');
         
-        // Populate team grid
         function populateTeamGrid() {
             teamGrid.innerHTML = '';
             TEAMS.forEach(team => {
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
-                teamCard.innerHTML = `
+                const card = document.createElement('div');
+                card.className = 'team-card';
+                card.innerHTML = `
                     <div class="team-logo" style="background-color: ${team.primary};">
                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${team.secondary}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="${team.primary}" />
@@ -316,101 +309,69 @@
                         <p class="team-name">${team.name}</p>
                         <p class="team-odds">${team.odds}% chance at #1 pick</p>
                     </div>
-                    <div class="team-seed">#${team.seed}</div>
-                `;
-                teamGrid.appendChild(teamCard);
+                    <div class="team-seed">#${team.seed}</div>`;
+                teamGrid.appendChild(card);
             });
         }
-        
-        // Secure random number generator
+
         function getRandomValue() {
             try {
-                const array = new Uint32Array(1);
-                window.crypto.getRandomValues(array);
-                return array[0] / 4294967296; // Normalize to [0, 1)
-            } catch (e) {
-                return Math.random() * (new Date().getTime() % 1000) / 1000;
+                const arr = new Uint32Array(1);
+                crypto.getRandomValues(arr);
+                return arr[0] / 4294967296;
+            } catch {
+                return Math.random();
             }
         }
-        
-        // Simple lottery simulator
+
         function simulateDraft() {
-            // Debug log
             debugInfo.innerHTML = '';
-            
-            // Increment counter
             simCount++;
-            const timestamp = new Date().toTimeString().split(' ')[0] + '.' + new Date().getMilliseconds();
+            const now = new Date();
+            const timestamp = `${now.toTimeString().split(' ')[0]}.${now.getMilliseconds()}`;
             debugInfo.innerHTML += `Simulation #${simCount} | ${timestamp}<br>`;
-            
-            // Create a deep copy of teams
-            const teamsCopy = JSON.parse(JSON.stringify(TEAMS));
+
+            const pool = JSON.parse(JSON.stringify(TEAMS));
             const draftOrder = [];
             
-            // Simulate the first 4 picks
             for (let pick = 1; pick <= 4; pick++) {
-                // Calculate total odds
-                const totalOdds = teamsCopy.reduce((sum, team) => sum + team.odds, 0);
-                
-                // Get random value
+                const totalOdds = pool.reduce((s, t) => s + t.odds, 0);
                 const random = getRandomValue() * totalOdds;
-                
-                // Debug log
-                debugInfo.innerHTML += `Pick ${pick}: Random ${random.toFixed(2)}/${totalOdds.toFixed(2)}<br>`;
-                
-                // Find team that gets the pick
-                let runningTotal = 0;
-                let selectedIndex = -1;
-                
-                for (let i = 0; i < teamsCopy.length; i++) {
-                    runningTotal += teamsCopy[i].odds;
-                    if (random <= runningTotal) {
-                        selectedIndex = i;
+                debugInfo.innerHTML += `Pick ${pick}: Random ${random.toFixed(4)} / ${totalOdds.toFixed(2)}<br>`;
+
+                let cumulative = 0;
+                let chosenIdx = 0;
+                for (let i = 0; i < pool.length; i++) {
+                    cumulative += pool[i].odds;
+                    if (random <= cumulative) {
+                        chosenIdx = i;
                         break;
                     }
                 }
-                
-                if (selectedIndex === -1) selectedIndex = teamsCopy.length - 1;
-                
-                // Add team to draft order
-                const selectedTeam = teamsCopy[selectedIndex];
-                draftOrder.push(selectedTeam);
-                
-                // Debug log
-                debugInfo.innerHTML += `→ Selected ${selectedTeam.code} (${selectedTeam.seed})<br>`;
-                
-                // Remove team from pool
-                teamsCopy.splice(selectedIndex, 1);
+                const chosen = pool.splice(chosenIdx, 1)[0];
+                draftOrder.push(chosen);
+                debugInfo.innerHTML += `→ Selected ${chosen.code} (seed ${chosen.seed})<br>`;
             }
-            
-            // Sort remaining teams by seed for picks 5-14
-            teamsCopy.sort((a, b) => a.seed - b.seed);
-            draftOrder.push(...teamsCopy);
-            
-            // Debug log the order
+
+            pool.sort((a, b) => a.seed - b.seed);
+            draftOrder.push(...pool);
             debugInfo.innerHTML += `Final order: ${draftOrder.map(t => t.code).join(', ')}<br>`;
-            
             return draftOrder;
         }
-        
-        // Display the results in the UI
-        function displayResults(draftOrder) {
+
+        function displayResults(order) {
             resultsContainer.innerHTML = '';
-            
-            draftOrder.forEach((team, index) => {
-                const pickNumber = 14 - index;
-                const isLotteryPick = pickNumber <= 4;
-                
+            order.forEach((team, idx) => {
+                const pick = idx + 1; // Correct pick numbers (1–14)
+                const isLottery = pick <= 4;
+                const movement = team.seed - pick;
+                const movementClass = movement > 0 ? 'up' : movement < 0 ? 'down' : '';
+                const movementText = movement === 0 ? '' : `(${movement > 0 ? '+' + movement : movement})`;
+
                 const row = document.createElement('div');
-                row.className = `result-row ${isLotteryPick ? 'lottery' : ''}`;
-                
-                // Calculate movement
-                const movement = team.seed - (14 - index);
-                const movementClass = movement > 0 ? 'up' : 'down';
-                const movementText = movement > 0 ? `(+${movement})` : `(${movement})`;
-                
+                row.className = `result-row ${isLottery ? 'lottery' : ''}`;
                 row.innerHTML = `
-                    <div class="pick-number">${pickNumber}</div>
+                    <div class="pick-number">${pick}</div>
                     <div class="team-logo" style="background-color: ${team.primary};">
                         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${team.secondary}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="${team.primary}" />
@@ -419,85 +380,49 @@
                     </div>
                     <div class="team-info">
                         <p class="team-name">${team.name}</p>
-                        <p class="team-odds">
-                            Original Position: #${team.seed}
-                            ${movement !== 0 ? `<span class="movement ${movementClass}">${movementText}</span>` : ''}
-                        </p>
+                        <p class="team-odds">Original Position: #${team.seed} ${movementText ? `<span class='movement ${movementClass}'>${movementText}</span>` : ''}</p>
                     </div>
-                    ${isLotteryPick ? '<div class="lottery-badge">Lottery Winner</div>' : ''}
-                `;
-                
+                    ${isLottery ? '<div class="lottery-badge">Lottery Winner</div>' : ''}`;
                 resultsContainer.appendChild(row);
             });
         }
-        
-        // Create confetti effect
+
         function createConfetti() {
             const container = document.querySelector('.container');
-            
-            // Remove any existing confetti
-            document.querySelectorAll('.confetti').forEach(el => el.remove());
-            
-            // Create new confetti particles
+            container.querySelectorAll('.confetti').forEach(el => el.remove());
             for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                
+                const c = document.createElement('div');
+                c.className = 'confetti';
                 const size = getRandomValue() * 8 + 4;
-                const x = getRandomValue() * 100;
-                const y = -getRandomValue() * 20 - 10;
-                const speed = getRandomValue() * 3 + 2;
-                const color = `hsl(${getRandomValue() * 360}, 70%, 60%)`;
-                
-                confetti.style.width = `${size}px`;
-                confetti.style.height = `${size}px`;
-                confetti.style.left = `${x}%`;
-                confetti.style.top = `${y}%`;
-                confetti.style.backgroundColor = color;
-                confetti.style.animationDuration = `${speed}s`;
-                
-                container.appendChild(confetti);
+                c.style.width = c.style.height = `${size}px`;
+                c.style.left = `${getRandomValue() * 100}%`;
+                c.style.top = `${-getRandomValue() * 20 - 10}%`;
+                c.style.backgroundColor = `hsl(${getRandomValue() * 360},70%,60%)`;
+                c.style.animationDuration = `${getRandomValue() * 3 + 2}s`;
+                container.appendChild(c);
             }
-            
-            // Remove confetti after animation
-            setTimeout(() => {
-                document.querySelectorAll('.confetti').forEach(el => el.remove());
-            }, 5000);
+            setTimeout(() => container.querySelectorAll('.confetti').forEach(el => el.remove()), 5000);
         }
-        
-        // Run the lottery
+
         function runLottery() {
-            // Disable button and update text
             runBtn.disabled = true;
             runBtn.textContent = 'Freezing Envelopes...';
             runBtn.style.animation = 'pulse 1s infinite';
-            
-            // Simulate with a delay for dramatic effect
             setTimeout(() => {
-                // Run simulation
-                const draftOrder = simulateDraft();
-                
-                // Display results
-                displayResults(draftOrder);
+                const order = simulateDraft();
+                displayResults(order);
                 resultsDiv.classList.remove('hidden');
-                
-                // Create confetti
                 createConfetti();
-                
-                // Re-enable button
                 runBtn.disabled = false;
                 runBtn.textContent = 'Run The Frozen Envelope Machine';
                 runBtn.style.animation = 'none';
             }, 1500);
         }
-        
-        // Initialize the app
+
         function init() {
             populateTeamGrid();
             runBtn.addEventListener('click', runLottery);
         }
-        
-        // Start when page loads
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
