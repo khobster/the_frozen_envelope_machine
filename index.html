@@ -3,461 +3,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Frozen Envelope Machine | NBA Draft Lottery Simulator | galaxyhole</title>
-    
-    <!-- Add React and ReactDOM from unpkg to ensure compatibility -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Add Babel for JSX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.10/babel.min.js"></script>
-    
-    <!-- Add Lucide Icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
-    <script>
-        // Make sure Lucide is available globally
-        window.LucideIcons = window.lucide || {};
-    </script>
-    
-    <!-- Add Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    <title>The Frozen Envelope Machine | NBA Draft Lottery</title>
     <style>
-        @keyframes fall {
-          0% {
-            transform: translateY(0) rotate(0deg);
-          }
-          100% {
-            transform: translateY(1000px) rotate(720deg);
-          }
-        }
-        
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-        
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f7f8fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
             padding: 20px;
+            margin: 0;
         }
         
         .container {
             max-width: 800px;
             margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
         }
         
         .header {
-            margin-bottom: 2rem;
             text-align: center;
+            margin-bottom: 30px;
         }
         
-        .falling-confetti {
+        .emojis {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #1d428a;
+            margin: 0 0 5px 0;
+            font-size: 2rem;
+        }
+        
+        .subtitle {
+            color: #777;
+            margin: 0;
+            font-size: 1rem;
+        }
+        
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .team-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
+        }
+        
+        .team-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        
+        .team-code {
             position: absolute;
-            animation: fall 3s linear forwards;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .team-info {
+            flex-grow: 1;
+        }
+        
+        .team-name {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .team-odds {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+        
+        .team-seed {
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: 5px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .section-subtitle {
+            font-size: 0.9rem;
+            color: #777;
+            margin: 0;
+        }
+        
+        .run-btn {
+            display: block;
+            margin: 0 auto 30px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #c8102e;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 4px 12px rgba(200, 16, 46, 0.3);
+        }
+        
+        .run-btn:hover {
+            background-color: #a70d25;
+        }
+        
+        .run-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .run-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .result-row {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-row.lottery {
+            background-color: #fff9e6;
+        }
+        
+        .pick-number {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #1d428a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .movement {
+            margin-left: 5px;
+        }
+        
+        .up {
+            color: #22bb33;
+        }
+        
+        .down {
+            color: #bb2124;
+        }
+        
+        .lottery-badge {
+            margin-left: auto;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background-color: #ffeeba;
+            color: #856404;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 0;
+            animation: fall linear forwards;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(1000px) rotate(720deg);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="root"></div>
+        <div class="header">
+            <div class="emojis">🧊 ✉️</div>
+            <h1>The Frozen Envelope Machine</h1>
+            <p class="subtitle">NBA Draft Lottery Simulator</p>
+        </div>
+        
+        <div class="section-header">
+            <h2 class="section-title">Pre-Lottery Order (Worst to Best)</h2>
+            <p class="section-subtitle">Based on 2025 NBA Lottery Odds</p>
+        </div>
+        
+        <div id="team-grid" class="team-grid">
+            <!-- Teams will be populated here by JavaScript -->
+        </div>
+        
+        <button id="run-btn" class="run-btn">Run The Frozen Envelope Machine</button>
+        
+        <div id="results" class="results hidden">
+            <h2 class="section-title">Draft Results</h2>
+            <div id="results-container">
+                <!-- Results will be populated here by JavaScript -->
+            </div>
+        </div>
     </div>
-    
-    <script type="text/babel">
-        // Create a React component for the NBA Draft Lottery Simulator
-        const TEAM_COLORS = {
-          UTA: { primary: '#002B5C', secondary: '#F9A01B', name: 'Utah Jazz' },
-          WAS: { primary: '#002B5C', secondary: '#E31837', name: 'Washington Wizards' },
-          CHA: { primary: '#1D1160', secondary: '#00788C', name: 'Charlotte Hornets' },
-          NO: { primary: '#0C2340', secondary: '#C8102E', name: 'New Orleans Pelicans' },
-          PHI: { primary: '#006BB6', secondary: '#ED174C', name: 'Philadelphia 76ers' },
-          BKN: { primary: '#000000', secondary: '#FFFFFF', name: 'Brooklyn Nets' },
-          TOR: { primary: '#CE1141', secondary: '#000000', name: 'Toronto Raptors' },
-          SA: { primary: '#C4CED4', secondary: '#000000', name: 'San Antonio Spurs' },
-          PHX: { primary: '#1D1160', secondary: '#E56020', name: 'Phoenix Suns' },
-          POR: { primary: '#E03A3E', secondary: '#000000', name: 'Portland Trail Blazers' },
-          DAL: { primary: '#00538C', secondary: '#002B5E', name: 'Dallas Mavericks' },
-          CHI: { primary: '#CE1141', secondary: '#000000', name: 'Chicago Bulls' },
-          SAC: { primary: '#5A2D81', secondary: '#63727A', name: 'Sacramento Kings' },
-          ATL: { primary: '#E03A3E', secondary: '#C1D32F', name: 'Atlanta Hawks' }
-        };
 
-        // Lottery odds from Tankathon
+    <script>
+        // Team data with colors and odds
+        const TEAMS = [
+            { code: 'UTA', name: 'Utah Jazz', primary: '#002B5C', secondary: '#F9A01B', odds: 14.0, seed: 1 },
+            { code: 'WAS', name: 'Washington Wizards', primary: '#002B5C', secondary: '#E31837', odds: 14.0, seed: 2 },
+            { code: 'CHA', name: 'Charlotte Hornets', primary: '#1D1160', secondary: '#00788C', odds: 14.0, seed: 3 },
+            { code: 'NO', name: 'New Orleans Pelicans', primary: '#0C2340', secondary: '#C8102E', odds: 12.5, seed: 4 },
+            { code: 'PHI', name: 'Philadelphia 76ers', primary: '#006BB6', secondary: '#ED174C', odds: 10.5, seed: 5 },
+            { code: 'BKN', name: 'Brooklyn Nets', primary: '#000000', secondary: '#FFFFFF', odds: 9.0, seed: 6 },
+            { code: 'TOR', name: 'Toronto Raptors', primary: '#CE1141', secondary: '#000000', odds: 7.5, seed: 7 },
+            { code: 'SA', name: 'San Antonio Spurs', primary: '#C4CED4', secondary: '#000000', odds: 6.0, seed: 8 },
+            { code: 'PHX', name: 'Phoenix Suns', primary: '#1D1160', secondary: '#E56020', odds: 4.5, seed: 9 },
+            { code: 'POR', name: 'Portland Trail Blazers', primary: '#E03A3E', secondary: '#000000', odds: 3.0, seed: 10 },
+            { code: 'DAL', name: 'Dallas Mavericks', primary: '#00538C', secondary: '#002B5E', odds: 2.0, seed: 11 },
+            { code: 'CHI', name: 'Chicago Bulls', primary: '#CE1141', secondary: '#000000', odds: 1.5, seed: 12 },
+            { code: 'SAC', name: 'Sacramento Kings', primary: '#5A2D81', secondary: '#63727A', odds: 1.0, seed: 13 },
+            { code: 'ATL', name: 'Atlanta Hawks', primary: '#E03A3E', secondary: '#C1D32F', odds: 0.5, seed: 14 }
+        ];
+        
+        // Lottery odds for picks 1-4 (simplified)
         const LOTTERY_ODDS = {
-          UTA: { team: 'UTA', odds: [14.0, 13.4, 12.7, 12.0, 47.9], seed: 1 },
-          WAS: { team: 'WAS', odds: [14.0, 13.4, 12.7, 12.0, 27.8, 20.0], seed: 2 },
-          CHA: { team: 'CHA', odds: [14.0, 13.4, 12.7, 12.0, 14.8, 26.0, 7.0], seed: 3 },
-          NO: { team: 'NO', odds: [12.5, 12.2, 11.9, 11.5, 7.2, 25.7, 16.7, 2.2], seed: 4 },
-          PHI: { team: 'PHI', odds: [10.5, 10.5, 10.6, 10.5, 2.2, 19.6, 26.7, 8.7, 0.6], seed: 5 },
-          BKN: { team: 'BKN', odds: [9.0, 9.2, 9.4, 9.6, 8.6, 29.8, 20.5, 3.7, 0.1], seed: 6 },
-          TOR: { team: 'TOR', odds: [7.5, 7.8, 8.1, 8.5, 19.7, 34.1, 12.9, 1.3, 0.1], seed: 7 },
-          SA: { team: 'SA', odds: [6.0, 6.3, 6.7, 7.2, 34.5, 32.1, 6.7, 0.4, 0.1], seed: 8 },
-          PHX: { team: 'PHX', odds: [4.5, 4.8, 5.2, 5.7, 50.7, 25.9, 3.0, 0.1, 0.1], seed: 9 },
-          POR: { team: 'POR', odds: [3.0, 3.3, 3.6, 4.0, 65.9, 19.0, 1.2], seed: 10 },
-          DAL: { team: 'DAL', odds: [2.0, 2.2, 2.4, 2.8, 77.6, 12.6, 0.4], seed: 11 },
-          CHI: { team: 'CHI', odds: [1.5, 1.7, 1.9, 2.1, 86.1, 6.7], seed: 12 },
-          SAC: { team: 'SAC', odds: [1.0, 1.1, 1.2, 1.4, 92.9, 2.3], seed: 13 },
-          ATL: { team: 'ATL', odds: [0.5, 0.6, 0.6, 0.7, 97.6], seed: 14 }
+            1: [14.0, 13.4, 12.7, 12.0],
+            2: [14.0, 13.4, 12.7, 12.0],
+            3: [14.0, 13.4, 12.7, 12.0],
+            4: [12.5, 12.2, 11.9, 11.5],
+            5: [10.5, 10.5, 10.6, 10.5],
+            6: [9.0, 9.2, 9.4, 9.6],
+            7: [7.5, 7.8, 8.1, 8.5],
+            8: [6.0, 6.3, 6.7, 7.2],
+            9: [4.5, 4.8, 5.2, 5.7],
+            10: [3.0, 3.3, 3.6, 4.0],
+            11: [2.0, 2.2, 2.4, 2.8],
+            12: [1.5, 1.7, 1.9, 2.1],
+            13: [1.0, 1.1, 1.2, 1.4],
+            14: [0.5, 0.6, 0.6, 0.7]
         };
 
-        // Team Logo Component
-        const TeamLogo = ({ teamCode, size = 48 }) => {
-          const colors = TEAM_COLORS[teamCode];
-          
-          // Create a custom shield icon
-          const renderShield = () => {
-            return (
-              <svg 
-                width={size * 0.7} 
-                height={size * 0.7} 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke={colors.secondary}
-                strokeWidth="3"
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill={colors.primary} />
-              </svg>
-            );
-          };
-          
-          return (
-            <div className="flex items-center justify-center" style={{ width: size, height: size }}>
-              <div 
-                className="relative flex items-center justify-center rounded-full"
-                style={{ 
-                  backgroundColor: colors.primary,
-                  width: size,
-                  height: size
-                }}
-              >
-                {renderShield()}
-                <div 
-                  className="absolute font-bold text-center" 
-                  style={{ 
-                    color: colors.secondary,
-                    fontSize: size * 0.3
-                  }}
-                >
-                  {teamCode}
-                </div>
-              </div>
-            </div>
-          );
-        };
-
-        // Confetti Component
-        const Confetti = ({ showConfetti }) => {
-          const [particles, setParticles] = React.useState([]);
-          
-          React.useEffect(() => {
-            if (showConfetti) {
-              const newParticles = [];
-              for (let i = 0; i < 100; i++) {
-                newParticles.push({
-                  id: i,
-                  x: Math.random() * 100,
-                  y: -Math.random() * 20 - 10,
-                  size: Math.random() * 8 + 4,
-                  color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-                  speed: Math.random() * 3 + 2
-                });
-              }
-              setParticles(newParticles);
-            } else {
-              setParticles([]);
-            }
-          }, [showConfetti]);
-          
-          return (
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {particles.map(particle => (
-                <div 
-                  key={particle.id}
-                  className="absolute rounded-sm falling-confetti"
-                  style={{
-                    left: `${particle.x}%`,
-                    top: `${particle.y}%`,
-                    width: `${particle.size}px`,
-                    height: `${particle.size}px`,
-                    backgroundColor: particle.color,
-                    animationDuration: `${particle.speed}s`
-                  }}
-                />
-              ))}
-            </div>
-          );
-        };
-
-        // Main Component
-        const DraftLotterySimulator = () => {
-          const [simulatedOrder, setSimulatedOrder] = React.useState([]);
-          const [isSimulating, setIsSimulating] = React.useState(false);
-          const [showConfetti, setShowConfetti] = React.useState(false);
-          const [simulationCount, setSimulationCount] = React.useState(0);
-          
-          // This is the key function that simulates the draft
-          const simulateDraft = () => {
-            setIsSimulating(true);
-            setSimulatedOrder([]);
-            setSimulationCount(prev => prev + 1); // Increment counter to force re-simulation
+        // DOM elements
+        const teamGrid = document.getElementById('team-grid');
+        const runBtn = document.getElementById('run-btn');
+        const results = document.getElementById('results');
+        const resultsContainer = document.getElementById('results-container');
+        
+        // Populate team grid
+        function populateTeamGrid() {
+            teamGrid.innerHTML = '';
+            TEAMS.forEach(team => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                teamCard.innerHTML = `
+                    <div class="team-logo" style="background-color: ${team.primary};">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${team.secondary}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="${team.primary}" />
+                        </svg>
+                        <div class="team-code" style="color: ${team.secondary};">${team.code}</div>
+                    </div>
+                    <div class="team-info">
+                        <p class="team-name">${team.name}</p>
+                        <p class="team-odds">${team.odds}% chance at #1 pick</p>
+                    </div>
+                    <div class="team-seed">#${team.seed}</div>
+                `;
+                teamGrid.appendChild(teamCard);
+            });
+        }
+        
+        // Initialize the simulator
+        function init() {
+            populateTeamGrid();
+            runBtn.addEventListener('click', runLottery);
+        }
+        
+        // Create confetti effect
+        function createConfetti() {
+            const container = document.querySelector('.container');
             
-            // Simulate with delay for each pick for dramatic effect
+            // Remove any existing confetti
+            document.querySelectorAll('.confetti').forEach(el => el.remove());
+            
+            // Create new confetti particles
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                const size = Math.random() * 8 + 4;
+                const x = Math.random() * 100;
+                const y = -Math.random() * 20 - 10;
+                const speed = Math.random() * 3 + 2;
+                const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.left = `${x}%`;
+                confetti.style.top = `${y}%`;
+                confetti.style.backgroundColor = color;
+                confetti.style.animationDuration = `${speed}s`;
+                
+                container.appendChild(confetti);
+            }
+            
+            // Remove confetti after animation
             setTimeout(() => {
-              try {
-                // Clone the lottery odds to avoid any reference issues
-                const teamsData = {};
-                Object.keys(LOTTERY_ODDS).forEach(key => {
-                  teamsData[key] = {
-                    ...LOTTERY_ODDS[key],
-                    odds: [...LOTTERY_ODDS[key].odds] // Create a new array
-                  };
-                });
+                document.querySelectorAll('.confetti').forEach(el => el.remove());
+            }, 5000);
+        }
+        
+        // Run the lottery simulation
+        function runLottery() {
+            runBtn.disabled = true;
+            runBtn.textContent = 'Freezing Envelopes...';
+            runBtn.style.animation = 'pulse 1s infinite';
+            
+            // Clear previous results
+            resultsContainer.innerHTML = '';
+            results.classList.add('hidden');
+            
+            // Simulate with a delay for dramatic effect
+            setTimeout(() => {
+                const draftOrder = simulateDraft();
+                displayResults(draftOrder);
                 
-                const teamsList = Object.values(teamsData);
-                const newOrder = [];
-                console.log(`Starting simulation #${simulationCount + 1}`);
+                // Re-enable the button
+                runBtn.disabled = false;
+                runBtn.textContent = 'Run The Frozen Envelope Machine';
+                runBtn.style.animation = 'none';
                 
-                // Simulate the first 4 picks (lottery picks)
-                let remainingTeams = [...teamsList];
+                // Show results and create confetti
+                results.classList.remove('hidden');
+                createConfetti();
+            }, 1500);
+        }
+        
+        // Simulate the draft lottery
+        function simulateDraft() {
+            // Create a copy of the teams array to work with
+            const teamsCopy = TEAMS.map(team => ({...team}));
+            const draftOrder = [];
+            
+            // Simulate the first 4 picks (lottery picks)
+            for (let pick = 0; pick < 4; pick++) {
+                const totalOdds = teamsCopy.reduce((sum, team) => {
+                    return sum + LOTTERY_ODDS[team.seed][pick];
+                }, 0);
                 
-                for (let pick = 1; pick <= 4; pick++) {
-                  // Calculate total odds for remaining teams
-                  const totalOdds = remainingTeams.reduce((sum, team) => sum + team.odds[pick-1], 0);
-                  
-                  // Get a random number between 0 and totalOdds
-                  const random = Math.random() * totalOdds;
-                  console.log(`Pick ${pick}: Random value ${random.toFixed(2)} / Total ${totalOdds.toFixed(2)}`);
-                  
-                  // Find the team that got the pick
-                  let runningTotal = 0;
-                  let selectedTeamIndex = -1;
-                  
-                  for (let i = 0; i < remainingTeams.length; i++) {
-                    runningTotal += remainingTeams[i].odds[pick-1];
+                const random = Math.random() * totalOdds;
+                console.log(`Pick ${pick+1}: Random value ${random.toFixed(2)} / Total ${totalOdds.toFixed(2)}`);
+                
+                let runningTotal = 0;
+                let selectedIndex = -1;
+                
+                for (let i = 0; i < teamsCopy.length; i++) {
+                    runningTotal += LOTTERY_ODDS[teamsCopy[i].seed][pick];
                     if (random <= runningTotal) {
-                      selectedTeamIndex = i;
-                      break;
+                        selectedIndex = i;
+                        break;
                     }
-                  }
-                  
-                  if (selectedTeamIndex === -1) {
-                    selectedTeamIndex = remainingTeams.length - 1; // Fallback to the last team if nothing found
-                  }
-                  
-                  // Add the team to the draft order
-                  console.log(`Pick ${pick}: Selected ${remainingTeams[selectedTeamIndex].team}`);
-                  newOrder.push({...remainingTeams[selectedTeamIndex]});
-                  
-                  // Remove the team from the remaining teams (create a new array)
-                  remainingTeams = remainingTeams.filter((_, index) => index !== selectedTeamIndex);
                 }
                 
-                // For the remaining picks, use the inverse order of team records (already sorted)
-                remainingTeams.sort((a, b) => a.seed - b.seed);
-                newOrder.push(...remainingTeams);
+                // If somehow no team was selected, pick the last one
+                if (selectedIndex === -1) selectedIndex = teamsCopy.length - 1;
                 
-                // Debug output the full draft order
-                console.log("Full draft order:", newOrder.map(team => team.team).join(", "));
+                // Add the team to the draft order
+                console.log(`Pick ${pick+1}: Selected ${teamsCopy[selectedIndex].code}`);
+                draftOrder.push(teamsCopy[selectedIndex]);
                 
-                // Update state with the simulated order
-                setSimulatedOrder(newOrder);
-              } catch (error) {
-                console.error("Error in simulation:", error);
-              } finally {
-                setIsSimulating(false);
-                setShowConfetti(true);
+                // Remove the team from the pool
+                teamsCopy.splice(selectedIndex, 1);
+            }
+            
+            // Sort remaining teams by seed for picks 5-14
+            teamsCopy.sort((a, b) => a.seed - b.seed);
+            draftOrder.push(...teamsCopy);
+            
+            // Log the complete draft order
+            console.log("Full draft order:", draftOrder.map(team => team.code).join(", "));
+            
+            return draftOrder;
+        }
+        
+        // Display the results of the lottery
+        function displayResults(draftOrder) {
+            draftOrder.forEach((team, index) => {
+                const pickNumber = 14 - index;
+                const isLotteryPick = pickNumber <= 4;
                 
-                // Hide confetti after a while
-                setTimeout(() => {
-                  setShowConfetti(false);
-                }, 5000);
-              }
-            }, 1000);
-          };
-          
-          return (
-            <div className="relative flex flex-col items-center p-8 overflow-hidden bg-gray-100 rounded-lg shadow-xl min-h-96">
-              <Confetti showConfetti={showConfetti} />
-              
-              <div className="text-center mb-8">
-                <div className="text-6xl mb-2">🧊 ✉️</div>
-                <h1 className="text-3xl font-bold text-center text-blue-800">The Frozen Envelope Machine</h1>
-                <p className="text-gray-600 mt-1">NBA Draft Lottery Simulator</p>
-              </div>
-              
-              <div className="w-full mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">Pre-Lottery Order (Worst to Best)</h2>
-                  <p className="text-sm text-gray-600">Based on 2025 NBA Lottery Odds</p>
-                </div>
+                const row = document.createElement('div');
+                row.className = `result-row ${isLotteryPick ? 'lottery' : ''}`;
                 
-                <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                  {Object.values(LOTTERY_ODDS).sort((a, b) => a.seed - b.seed).map(team => (
-                    <div 
-                      key={team.team} 
-                      className="flex items-center p-3 bg-white rounded-lg shadow-md"
-                    >
-                      <div className="flex-shrink-0 mr-4">
-                        <TeamLogo teamCode={team.team} size={36} />
-                      </div>
-                      <div className="flex-grow">
-                        <div className="font-semibold">{TEAM_COLORS[team.team].name}</div>
-                        <div className="text-sm text-gray-600">
-                          {team.odds[0]}% chance at #1 pick
-                        </div>
-                      </div>
-                      <div className="text-lg font-bold">
-                        #{team.seed}
-                      </div>
+                // Calculate movement
+                const movement = team.seed - (14 - index);
+                const movementClass = movement > 0 ? 'up' : 'down';
+                const movementText = movement > 0 ? `(+${movement})` : `(${movement})`;
+                
+                row.innerHTML = `
+                    <div class="pick-number">${pickNumber}</div>
+                    <div class="team-logo" style="background-color: ${team.primary};">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="${team.secondary}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="${team.primary}" />
+                        </svg>
+                        <div class="team-code" style="color: ${team.secondary};">${team.code}</div>
                     </div>
-                  ))}
-                </div>
-              </div>
-              
-              <button
-                onClick={simulateDraft}
-                disabled={isSimulating}
-                className={`px-8 py-4 mb-8 text-xl font-bold text-white transition-transform rounded-full shadow-lg ${
-                  isSimulating ? 'bg-gray-500' : 'bg-red-600 hover:bg-red-700 active:transform active:scale-95'
-                }`}
-                style={{
-                  animation: isSimulating ? 'pulse 1s infinite' : 'none'
-                }}
-              >
-                {isSimulating ? 'Freezing Envelopes...' : 'Run The Frozen Envelope Machine'}
-              </button>
-              
-              {simulatedOrder.length > 0 && (
-                <div className="w-full">
-                  <h2 className="mb-4 text-xl font-semibold">Draft Results</h2>
-                  <div className="overflow-hidden bg-white rounded-lg shadow-lg">
-                    {simulatedOrder.map((team, index) => {
-                      const pickNumber = 14 - index;
-                      const isLotteryPick = pickNumber <= 4;
-                      
-                      return (
-                        <div 
-                          key={`${team.team}-${simulationCount}-${index}`}
-                          className={`flex items-center p-4 border-b ${
-                            isLotteryPick ? 'bg-yellow-50' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-center w-10 h-10 mr-4 font-bold text-white bg-blue-700 rounded-full">
-                            {pickNumber}
-                          </div>
-                          <div className="flex-shrink-0 mr-4">
-                            <TeamLogo teamCode={team.team} size={40} />
-                          </div>
-                          <div className="flex-grow">
-                            <div className="text-lg font-semibold">{TEAM_COLORS[team.team].name}</div>
-                            <div className="text-sm text-gray-600">
-                              Original Position: #{team.seed}
-                              {team.seed !== (14 - index) && (
-                                <span className={team.seed > (14 - index) ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
-                                  {team.seed > (14 - index) ? `(+${team.seed - (14 - index)})` : `(${team.seed - (14 - index)})`}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {isLotteryPick && (
-                            <div className="px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-200 rounded-full">
-                              Lottery Winner
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        };
-
-        // Render the app
-        ReactDOM.render(<DraftLotterySimulator />, document.getElementById('root'));
-    </script>d">{TEAM_COLORS[team.team].name}</div>
-                        <div className="text-sm text-gray-600">
-                          {team.odds[0]}% chance at #1 pick
-                        </div>
-                      </div>
-                      <div className="text-lg font-bold">
-                        #{team.seed}
-                      </div>
+                    <div class="team-info">
+                        <p class="team-name">${team.name}</p>
+                        <p class="team-odds">
+                            Original Position: #${team.seed}
+                            ${movement !== 0 ? `<span class="movement ${movementClass}">${movementText}</span>` : ''}
+                        </p>
                     </div>
-                  ))}
-                </div>
-              </div>
-              
-              <button
-                onClick={simulateDraft}
-                disabled={isSimulating}
-                className={`px-8 py-4 mb-8 text-xl font-bold text-white transition-transform rounded-full shadow-lg ${
-                  isSimulating ? 'bg-gray-500' : 'bg-red-600 hover:bg-red-700 active:transform active:scale-95'
-                }`}
-                style={{
-                  animation: isSimulating ? 'pulse 1s infinite' : 'none'
-                }}
-              >
-                {isSimulating ? 'Freezing Envelopes...' : 'Run The Frozen Envelope Machine'}
-              </button>
-              
-              {simulatedOrder.length > 0 && (
-                <div className="w-full">
-                  <h2 className="mb-4 text-xl font-semibold">Draft Results</h2>
-                  <div className="overflow-hidden bg-white rounded-lg shadow-lg">
-                    {simulatedOrder.map((team, index) => {
-                      const pickNumber = 14 - index;
-                      const isLotteryPick = pickNumber <= 4;
-                      
-                      return (
-                        <div 
-                          key={team.team}
-                          className={`flex items-center p-4 border-b ${
-                            isLotteryPick ? 'bg-yellow-50' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-center w-10 h-10 mr-4 font-bold text-white bg-blue-700 rounded-full">
-                            {pickNumber}
-                          </div>
-                          <div className="flex-shrink-0 mr-4">
-                            <TeamLogo teamCode={team.team} size={40} />
-                          </div>
-                          <div className="flex-grow">
-                            <div className="text-lg font-semibold">{TEAM_COLORS[team.team].name}</div>
-                            <div className="text-sm text-gray-600">
-                              Original Position: #{team.seed}
-                              {team.seed !== (14 - index) && (
-                                <span className={team.seed > (14 - index) ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
-                                  {team.seed > (14 - index) ? `(+${team.seed - (14 - index)})` : `(${team.seed - (14 - index)})`}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {isLotteryPick && (
-                            <div className="px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-200 rounded-full">
-                              Lottery Winner
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        };
-
-        // Render the app
-        ReactDOM.render(<DraftLotterySimulator />, document.getElementById('root'));
+                    ${isLotteryPick ? '<div class="lottery-badge">Lottery Winner</div>' : ''}
+                `;
+                
+                resultsContainer.appendChild(row);
+            });
+        }
+        
+        // Initialize the app when the page loads
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
